@@ -36,6 +36,7 @@ function print_refs($id,$col){
     echo ">Undefined</option>";
     
     while($r = mysqli_fetch_array($q)){
+        if($r['Position'] < 10) $r['Position'] = "0{$r['Position']}";
         echo "<option value='{$r['ID']}' ";
         echo get_selected($id, $col, $r['ID']);
         echo ">{$r['Rack']}.{$r['Position']} - {$r['Hardware']}</option>";
@@ -72,6 +73,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
     $save['Height'] = $_POST['height'];
     $save['Hardware'] = $_POST['hardware'];
     $save['Group'] = $_POST['group'];
+    $save['Comment'] = strip_tags($_POST['comment']);
     
     if($_POST['type'] == 1){
         //consumer
@@ -330,6 +332,13 @@ else{
                     </td>
                 </tr>
             </table>
+        </td>
+    </tr>
+
+    <tr>
+        <td>Comments</td>
+        <td>
+            <textarea name='comment' rows="5" cols="52"><?php echo get_val($mode, 'Comment'); ?></textarea>
         </td>
     </tr>
 

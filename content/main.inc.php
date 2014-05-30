@@ -52,15 +52,18 @@ function print_ref_status($id, $n){
     $load_per_ref = 0;
     if($active_refs > 0)
         $load_per_ref = $r['TotalLoad'] / $active_refs;
-    if((intval($r['RefFlags']) & intval(pow(2, $n-1))) == 0){
+    if(($r['RefFlags'] & pow(2, $n-1)) == 0 && $r["Ref$n"] != 0){
         echo "<s title='Disabled'>";
         print_ref_pos($r["Ref$n"]);
         echo "</s>";
     }
-    else{
+    elseif($r["Ref$n"] != 0){
         echo "<span title='$load_per_ref W'>";
         print_ref_pos($r["Ref$n"]);
         echo "</span>";
+    }
+    else{
+        echo "-";
     }
     mysqli_free_result($q);
 }
@@ -178,7 +181,7 @@ function generate_rack_table($idx){
     echo "<td colspan='9'>Rack $idx</td>";
     echo "</tr>";
     echo "<tr class='rack_head'>";
-    echo "<td>&nbsp;</td><td style='min-width:60px;'>Hardware</td><td>Ref1</td><td>Ref2</td><td>Ref3</td><td>Ref4</td><td>Load</td><td>Uptime</td>";
+    echo "<td>&nbsp;</td><td style='min-width:60px;'>Hardware</td><td>R1</td><td>R2</td><td>R3</td><td>R4</td><td>Load</td><td>Uptime</td>";
     echo "</tr>";
     for($i = 42; $i >= 0; $i--){
         generate_rack_row($idx, $i);
