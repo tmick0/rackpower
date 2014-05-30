@@ -4,7 +4,9 @@ set_title("login");
 
 if(isset($_GET['post'])){
     // check login
-    if($_POST['pass'] == getconf('access_pw')){
+	echo "logging in...";
+    if($_POST['pass'] == get_conf('access_pw')){
+	echo "ok ";
         auth_user();
         echo "<script type='text/javascript'>window.opener.location.reload();window.close();</script>";
     }
