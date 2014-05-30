@@ -178,7 +178,8 @@ elseif(isset($_GET['post']) && $_POST['action'] == "Delete"){
     else{
         // success
         echo "Changes saved.<br/>";
-        echo "<a href='./?' onclick='window.close();return false;'>Continue &rarr;</a>";
+        echo "<script type='text/javascript'>window.opener.location.reload();</script>";
+        echo "<a href='./?' onclick='window.close();return false;'>Continue &rarr;</a><br/>";
     }
 }
 else{

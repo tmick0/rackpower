@@ -1,6 +1,6 @@
 <?php
 
-set_title("racks");
+set_title("main");
 
 function print_ref_pos($id){
     if($id != 0 && $q = sql_query("SELECT `Rack`,`Position` FROM `entities` WHERE `ID` = '$id'")){
@@ -20,7 +20,6 @@ function bits_set($n){
         $s += $n & 0x01;
         $n = $n >> 1;
     }
-    //echo "$n has $s bits set<br/>";
     return $s;
 }
 
@@ -29,11 +28,7 @@ function calc_ups_load($id){
     $sum = 0;
     while($r = mysqli_fetch_array($q)){
         $active_refs = bits_set($r['RefFlags']);
-        if($active_refs == 0){
-            $sum += 0;
-            //echo "UPS $id has 0 active refs<br/>";
-        }
-        else{
+        if($active_refs != 0){
             $load_per_ref = $r['TotalLoad'] / $active_refs;
             if($r['Ref1'] == $id) $sum += $load_per_ref;
             if($r['Ref2'] == $id) $sum += $load_per_ref;
@@ -191,7 +186,9 @@ function generate_rack_table($idx){
 }
 
 if(is_user_authed()){
-    echo '<div style="width:100%; overflow:auto;">';
+	echo "<h2 class='head'>rackpower</h2><ul class='head'>";
+	show_content("head.inc.html");
+    echo "</ul><div id='main'>";
     echo "<div class='racks_container'>";
     if($racks = sql_query("SELECT `RackId` FROM `racks` ORDER BY `RackId` DESC")){
         while($row = mysqli_fetch_array($racks)){
@@ -200,10 +197,9 @@ if(is_user_authed()){
         mysqli_free_result($racks);
     }
     echo "</div></div>";
-
-    echo "<p><a href='./?p=edit' onclick='return windowpop(this.href)'>Add new entity &rarr;</a></p>";
-echo "<p><a href='./?p=login&logout' onclick='return windowpop(this.href)'>Log out &rarr;</a></p>";
 }
 else{
-    echo "<p><a href='./?p=login' onclick='return windowpop(this.href)'>Log in &rarr;</a></p>";
+	echo "<h2 class='head'>rackpower</h2><ul class='head'>";
+    echo "<li><a href='./?p=login' onclick='return windowpop(this.href)'>Log In</a></li>";
+    echo "</ul><div id='main'></div>";
 }
