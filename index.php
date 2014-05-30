@@ -1,11 +1,9 @@
 <?php
 
-require("inc/conf.inc.php");
 require("inc/sql.inc.php");
 require("inc/auth.inc.php");
 require("inc/content.inc.php");
 require("inc/formula.inc.php");
-require("config.inc.php");
 
 session_start();
 ob_start();
@@ -29,21 +27,17 @@ ob_end_clean();
             padding:0px;
         }
         div.racks_container{
-            width:100%;
-            overflow:auto;
             text-align:center;
-            display:table-row;
         }
         div.rack{
             font-size:9px;
-            display:table-cell;
+            display:inline-block;
             vertical-align:top;
             border:1px solid;
-            margin:1px;
-            cell-spacing:2px;
+            margin:2px;
         }
-        div.rack+div.rack{
-            border-left:none;
+        div.rack>table{
+            
         }
         tr.rack_title td{
             text-align:center;
@@ -70,7 +64,7 @@ ob_end_clean();
     <script type="text/javascript">
         function windowpop(url) {
             var width = 650;
-            var height = 450;
+            var height = 570;
             var leftPosition, topPosition;
             leftPosition = (window.screen.width / 2) - ((width / 2) + 10);
             topPosition = (window.screen.height / 2) - ((height / 2) + 50);
