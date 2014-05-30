@@ -11,9 +11,9 @@ function get_title(){
 }
 
 function show_content($file){
-    $content_path = realpath(dirname(__FILE__)."\\..\\content\\");
-    if(realpath(dirname("$content_path\\$file")) != $content_path)
+    $content_path = realpath(dirname(__FILE__)."/../content/");
+    if(realpath(dirname("$content_path/$file")) != $content_path)
         exit("security error: show_content called on invalid file path");
     else
-        include("$content_path\\$file");
+        include("$content_path/$file");
 }
