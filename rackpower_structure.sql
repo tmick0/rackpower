@@ -2,7 +2,7 @@ CREATE DATABASE  IF NOT EXISTS `rackpower` /*!40100 DEFAULT CHARACTER SET utf8 *
 USE `rackpower`;
 -- MySQL dump 10.13  Distrib 5.6.13, for Win32 (x86)
 --
--- Host: localhost    Database: rackpower
+-- Host: localhost    Database: racks
 -- ------------------------------------------------------
 -- Server version	5.6.14-log
 
@@ -27,6 +27,7 @@ DROP TABLE IF EXISTS `entities`;
 CREATE TABLE `entities` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `Type` int(11) NOT NULL,
+  `Group` int(11) DEFAULT NULL,
   `Rack` int(11) unsigned NOT NULL,
   `Position` int(11) unsigned NOT NULL,
   `Height` int(11) unsigned NOT NULL DEFAULT '1',
@@ -35,14 +36,13 @@ CREATE TABLE `entities` (
   `Comment` varchar(192) DEFAULT NULL,
   `Ref1` int(11) DEFAULT NULL,
   `Ref2` int(11) DEFAULT NULL,
-  `Used1` int(11) DEFAULT NULL,
-  `Used2` int(11) DEFAULT NULL,
+  `Ref3` int(11) DEFAULT NULL,
+  `Ref4` int(11) DEFAULT NULL,
+  `RefFlags` int(11) DEFAULT '0',
+  `TotalLoad` int(11) DEFAULT NULL,
   `Capacity` int(11) DEFAULT NULL,
   `FormulaA` float DEFAULT NULL,
   `FormulaB` float DEFAULT NULL,
-  `Group` int(11) DEFAULT NULL,
-  `Ref3` int(11) DEFAULT NULL,
-  `Used3` int(11) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `Rack_idx` (`Rack`),
   KEY `Type_idx` (`Type`)
@@ -86,4 +86,4 @@ CREATE TABLE `racks` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-05-29 16:36:39
+-- Dump completed on 2014-05-30 12:55:25

@@ -14,6 +14,57 @@ function print_ref_pos($id){
     }    
 }
 
+function bits_set($n){
+    $s = 0;
+    while($n > 0){
+        $s += $n & 0x01;
+        $n = $n >> 1;
+    }
+    //echo "$n has $s bits set<br/>";
+    return $s;
+}
+
+function calc_ups_load($id){
+    $q = sql_query("SELECT * FROM `entities` WHERE `Ref1` = '$id' OR `Ref2` = '$id' OR `Ref3` = '$id' OR `Ref4` = '$id'");
+    $sum = 0;
+    while($r = mysqli_fetch_array($q)){
+        $active_refs = bits_set($r['RefFlags']);
+        if($active_refs == 0){
+            $sum += 0;
+            //echo "UPS $id has 0 active refs<br/>";
+        }
+        else{
+            $load_per_ref = $r['TotalLoad'] / $active_refs;
+            if($r['Ref1'] == $id) $sum += $load_per_ref;
+            if($r['Ref2'] == $id) $sum += $load_per_ref;
+            if($r['Ref3'] == $id) $sum += $load_per_ref;
+            if($r['Ref4'] == $id) $sum += $load_per_ref;
+        }
+    }
+    mysqli_free_result($q);
+    return $sum;
+}
+
+function print_ref_status($id, $n){
+    $q = sql_query("SELECT `Ref$n`, `RefFlags`,`TotalLoad` FROM `entities` WHERE `ID`='$id'");
+    $r = mysqli_fetch_array($q);
+    $active_refs = bits_set($r['RefFlags']);
+    $load_per_ref = 0;
+    if($active_refs > 0)
+        $load_per_ref = $r['TotalLoad'] / $active_refs;
+    if((intval($r['RefFlags']) & intval(pow(2, $n-1))) == 0){
+        echo "<s title='Disabled'>";
+        print_ref_pos($r["Ref$n"]);
+        echo "</s>";
+    }
+    else{
+        echo "<span title='$load_per_ref W'>";
+        print_ref_pos($r["Ref$n"]);
+        echo "</span>";
+    }
+    mysqli_free_result($q);
+}
+
 function generate_rack_row($rack_idx, $slot_idx){
     $rack_idx = sql_esc($rack_idx);
     $slot_idx = sql_esc($slot_idx);
@@ -44,32 +95,36 @@ function generate_rack_row($rack_idx, $slot_idx){
                 // type==1 -> server
                 
                 echo "<td $bgcolor rowspan='{$item['Height']}'>";
-                echo print_ref_pos($item['Ref1']);
+                echo print_ref_status($item['ID'], 1);
                 echo "</td>";
                 
                 echo "<td $bgcolor rowspan='{$item['Height']}'>";
-                echo print_ref_pos($item['Ref2']);
+                echo print_ref_status($item['ID'], 2);
                 echo "</td>";
 
                 echo "<td $bgcolor rowspan='{$item['Height']}'>";
-                echo print_ref_pos($item['Ref3']);
+                echo print_ref_status($item['ID'], 3);
+                echo "</td>";
+
+                echo "<td $bgcolor rowspan='{$item['Height']}'>";
+                echo print_ref_status($item['ID'], 4);
                 echo "</td>";
                 
-                echo "<td $bgcolor rowspan='{$item['Height']}'>{$item['Used1']}</td>";
-                echo "<td $bgcolor rowspan='{$item['Height']}'>{$item['Used2']}</td>";
-                echo "<td $bgcolor rowspan='{$item['Height']}'>{$item['Used3']}</td>";
+                echo "<td $bgcolor rowspan='{$item['Height']}'>{$item['TotalLoad']}</td>";
                 
                 echo "<td $bgcolor rowspan='{$item['Height']}'>";
 
-                $q = sql_query("SELECT `ID` FROM `entities` WHERE `ID` = '{$item['Ref1']}' OR `ID`='{$item['Ref2']}'");
+                $q = sql_query("SELECT `ID` FROM `entities` WHERE `ID` = '{$item['Ref1']}' OR `ID`='{$item['Ref2']}' OR `ID`='{$item['Ref3']}' OR `ID`='{$item['Ref4']}'");
                 $min_id = 0;
                 $min_runtime = 0;
                 while($r = mysqli_fetch_array($q)){
-                    $q2a = sql_query("SELECT SUM(`Used1`) FROM `entities` WHERE `Ref1` = '{$r['ID']}'");
-                    $q2b = sql_query("SELECT SUM(`Used2`) FROM `entities` WHERE `Ref2` = '{$r['ID']}'");
-                    $q2c = sql_query("SELECT SUM(`Used2`) FROM `entities` WHERE `Ref3` = '{$item['ID']}'");
-                    $sum = mysqli_fetch_row($q2a)[0] + mysqli_fetch_row($q2b)[0] + mysqli_fetch_row($q2c)[0];
-                    mysqli_free_result($q2a); mysqli_free_result($q2b); mysqli_free_result($q2c);
+                    // skip if not active
+                    if($item['Ref1'] == $r['ID'] && ($item['RefFlags'] & 0x01) == 0) continue;
+                    if($item['Ref2'] == $r['ID'] && ($item['RefFlags'] & 0x02) == 0) continue;
+                    if($item['Ref3'] == $r['ID'] && ($item['RefFlags'] & 0x04) == 0) continue;
+                    if($item['Ref4'] == $r['ID'] && ($item['RefFlags'] & 0x08) == 0) continue;
+                    
+                    $sum = calc_ups_load($r['ID']);
                     $this_rt = apply_formula($r['ID'], $sum);
                     if($min_id == 0 || $this_rt < $min_runtime){
                         $min_runtime = round($this_rt);
@@ -82,17 +137,15 @@ function generate_rack_row($rack_idx, $slot_idx){
             
             elseif($item['Type'] == 2){
                 // type==2 -> ups
-                echo "<td $bgcolor rowspan='{$item['Height']}' colspan='3'>";
+                $sum= calc_ups_load($item['ID']);
+                
+                echo "<td $bgcolor rowspan='{$item['Height']}' colspan='2'>";
                 echo $item['Capacity'];
                 echo "</td>";
                 
                 echo "<td $bgcolor rowspan='{$item['Height']}' colspan='2'>";
-                $q2a = sql_query("SELECT SUM(`Used1`) FROM `entities` WHERE `Ref1` = '{$item['ID']}'");
-                $q2b = sql_query("SELECT SUM(`Used2`) FROM `entities` WHERE `Ref2` = '{$item['ID']}'");
-                $q2c = sql_query("SELECT SUM(`Used2`) FROM `entities` WHERE `Ref3` = '{$item['ID']}'");
-                $sum = mysqli_fetch_row($q2a)[0] + mysqli_fetch_row($q2b)[0] + mysqli_fetch_row($q2c)[0];
-                mysqli_free_result($q2a); mysqli_free_result($q2b); mysqli_free_result($q2c);
-                echo "$sum</td>";
+                echo $sum;
+                echo "</td>";
                 
                 echo "<td $bgcolor rowspan='{$item['Height']}' colspan='1'>";
                 echo round($sum/$item['Capacity']*100,1);
@@ -125,7 +178,7 @@ function generate_rack_table($idx){
     echo "<td colspan='9'>Rack $idx</td>";
     echo "</tr>";
     echo "<tr class='rack_head'>";
-    echo "<td>&nbsp;</td><td style='min-width:60px;'>Hardware</td><td>Ref1</td><td>Ref2</td><td>Ref3</td><td>Used1</td><td>Used2</td><td>Used3</td><td>Uptime</td>";
+    echo "<td>&nbsp;</td><td style='min-width:60px;'>Hardware</td><td>Ref1</td><td>Ref2</td><td>Ref3</td><td>Ref4</td><td>Load</td><td>Uptime</td>";
     echo "</tr>";
     for($i = 42; $i >= 0; $i--){
         generate_rack_row($idx, $i);

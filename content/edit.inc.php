@@ -21,6 +21,13 @@ function get_selected($id, $field, $val){
         return "";
 }
 
+function get_flag_checked($id, $flag){
+    if((get_val($id, "RefFlags") & $flag) != 0)
+        return "checked='checked'";
+    else
+        return "";
+}
+
 function print_refs($id,$col){
     $q = sql_query("SELECT `ID`,`Rack`,`Position`,`Hardware` FROM `entities` WHERE `Type` = '2'");
     
@@ -34,6 +41,15 @@ function print_refs($id,$col){
         echo ">{$r['Rack']}.{$r['Position']} - {$r['Hardware']}</option>";
     }
     mysqli_free_result($q);
+}
+
+function calc_flags(){
+    $sum = 0;
+    if(isset($_POST['ref1_f']) && $_POST['ref1_f'] != 0) $sum += 1;
+    if(isset($_POST['ref2_f']) && $_POST['ref2_f'] != 0) $sum += 2;
+    if(isset($_POST['ref3_f']) && $_POST['ref3_f'] != 0) $sum += 4;
+    if(isset($_POST['ref4_f']) && $_POST['ref4_f'] != 0) $sum += 8;
+    return $sum;
 }
 
 $mode = 0;
@@ -62,9 +78,9 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['Ref1'] = intval($_POST['ref1']);
         $save['Ref2'] = intval($_POST['ref2']);
         $save['Ref3'] = intval($_POST['ref3']);
-        $save['Used1'] = intval($_POST['used1']);
-        $save['Used2'] = intval($_POST['used2']);
-        $save['Used3'] = intval($_POST['used3']);
+        $save['Ref4'] = intval($_POST['ref4']);
+        $save['RefFlags'] = calc_flags();
+        $save['TotalLoad'] = intval($_POST['load']);
         $save['Capacity'] = 0;
         $save['FormulaA'] = 0;
         $save['FormulaB'] = 0;
@@ -74,9 +90,9 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['Ref1'] = 0;
         $save['Ref2'] = 0;
         $save['Ref3'] = 0;
-        $save['Used1'] = 0;
-        $save['Used2'] = 0;
-        $save['Used3'] = 0;
+        $save['Ref4'] = 0;
+        $save['RefFlags'] = 0;
+        $save['TotalLoad'] = 0;
         $save['Capacity'] = $_POST['capacity'];
         $save['FormulaA'] = $_POST['formulaa'];
         $save['FormulaB'] = $_POST['formulab'];
@@ -86,9 +102,9 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['Ref1'] = 0;
         $save['Ref2'] = 0;
         $save['Ref3'] = 0;
-        $save['Used1'] = 0;
-        $save['Used2'] = 0;
-        $save['Used3'] = 0;
+        $save['Ref4'] = 0;
+        $save['RefFlags'] = 0;
+        $save['TotalLoad'] = 0;
         $save['Capacity'] = 0;
         $save['FormulaA'] = 0;
         $save['FormulaB'] = 0;
@@ -250,43 +266,46 @@ else{
             <i>Ignore this section if configuring a provider (or other)</i>
             <table border="0" width="100%">
                 <tr>
-                    <td>&nbsp;</td>
-                    <td>Ref</td>
-                    <td>Used</td>
+                    <td>Total Consumption</td>
+                    <td><input name="load" value="<?php echo get_val($mode, 'TotalLoad');?>"/></td>
                 </tr>
                 <tr>
-                    <td>1</td>
+                    <td>Power Supply 1</td>
                     <td>
                         <select name="ref1">
                             <?php print_refs($mode,'Ref1'); ?>
                         </select>
-                    </td>
-                    <td>
-                        <input name="used1" value="<?php echo get_val($mode, 'Used1'); ?>"/>
+                        <input type='checkbox' name="ref1_f" value="1" <?php echo get_flag_checked($mode, 1); ?>/>
                     </td>
                 </tr>
 
                 <tr>
-                    <td>2</td>
+                    <td>Power Supply 2</td>
                     <td>
                         <select name="ref2">
                             <?php print_refs($mode,'Ref2'); ?>
                         </select>
-                    </td>
-                    <td>
-                        <input name="used2" value="<?php echo get_val($mode, 'Used2'); ?>"/>
+                        <input type='checkbox' name="ref2_f" value="1" <?php echo get_flag_checked($mode, 2); ?>/>
                     </td>
                 </tr>
 
                 <tr>
-                    <td>3</td>
+                    <td>Power Supply 3</td>
                     <td>
                         <select name="ref3">
                             <?php print_refs($mode,'Ref3'); ?>
                         </select>
+                        <input type='checkbox' name="ref3_f" value="1" <?php echo get_flag_checked($mode, 4); ?>/>
                     </td>
+                </tr>
+
+                <tr>
+                    <td>Power Supply 4</td>
                     <td>
-                        <input name="used3" value="<?php echo get_val($mode, 'Used3'); ?>"/>
+                        <select name="ref4">
+                            <?php print_refs($mode,'Ref4'); ?>
+                        </select>
+                        <input type='checkbox' name="ref4_f" value="1" <?php echo get_flag_checked($mode, 8); ?>/>
                     </td>
                 </tr>
             </table>
@@ -318,7 +337,7 @@ else{
         <td>&nbsp;</td>
         <td>
             <input type='submit' value="Save" name='action'/>
-            <?php if($mode) echo "<input type='submit' value='Delete' name='action'/>"; ?>
+            <?php if($mode) echo "<input type='submit' onclick=\"return confirm('Are you sure you want to delete this?')\" value='Delete' name='action'/>"; ?>
         </td>
     </tr>
     
