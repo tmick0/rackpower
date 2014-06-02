@@ -86,10 +86,15 @@ function generate_rack_row($rack_idx, $slot_idx, $hide_r1, $hide_r2, $hide_r3, $
 
             if($item['Height'] < 2) $bgcolor.="white-space:nowrap;";
             $bgcolor = "style='$bgcolor'";
+
+            $title = "";
+            if(strlen($item['Comment'])){
+                $title = "title=\"".htmlentities($item['Comment'])."\"";
+            }
             
             echo "<tr class='rack_row'>";
             echo "<td>$slot_idx</td>";
-            echo "<td $bgcolor rowspan='{$item['Height']}' style='white-space:nowrap;'><a href='?p=edit&id={$item['ID']}' onclick='return windowpop(this.href)'>{$item['Hardware']}</a></td>";
+            echo "<td $bgcolor rowspan='{$item['Height']}' style='white-space:nowrap;' $title><a href='?p=edit&id={$item['ID']}' onclick='return windowpop(this.href)'>{$item['Hardware']}</a></td>";
             
             if($item['Type'] == 1){
                 // type==1 -> server
