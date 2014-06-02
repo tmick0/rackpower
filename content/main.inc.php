@@ -63,9 +63,11 @@ function print_ref_status($id, $n){
     mysqli_free_result($q);
 }
 
-function generate_rack_row($rack_idx, $slot_idx){
+function generate_rack_row($rack_idx, $slot_idx, $hide_r1, $hide_r2, $hide_r3, $hide_r4){
     $rack_idx = sql_esc($rack_idx);
     $slot_idx = sql_esc($slot_idx);
+    
+    $n_col = 9 - $hide_r1 - $hide_r2 - $hide_r3 - $hide_r4;
     
     $r = sql_query("SELECT * FROM `entities` WHERE `Rack`='$rack_idx' AND `Position`<='$slot_idx' AND (`Position` + `Height`) > '$slot_idx'");
 
@@ -91,22 +93,30 @@ function generate_rack_row($rack_idx, $slot_idx){
             
             if($item['Type'] == 1){
                 // type==1 -> server
-                
-                echo "<td $bgcolor rowspan='{$item['Height']}'>";
-                echo print_ref_status($item['ID'], 1);
-                echo "</td>";
-                
-                echo "<td $bgcolor rowspan='{$item['Height']}'>";
-                echo print_ref_status($item['ID'], 2);
-                echo "</td>";
 
-                echo "<td $bgcolor rowspan='{$item['Height']}'>";
-                echo print_ref_status($item['ID'], 3);
-                echo "</td>";
+                if(!$hide_r1){
+                    echo "<td $bgcolor rowspan='{$item['Height']}'>";
+                    echo print_ref_status($item['ID'], 1);
+                    echo "</td>";
+                }
 
-                echo "<td $bgcolor rowspan='{$item['Height']}'>";
-                echo print_ref_status($item['ID'], 4);
-                echo "</td>";
+                if(!$hide_r2){
+                    echo "<td $bgcolor rowspan='{$item['Height']}'>";
+                    echo print_ref_status($item['ID'], 2);
+                    echo "</td>";
+                }
+
+                if(!$hide_r3){
+                    echo "<td $bgcolor rowspan='{$item['Height']}'>";
+                    echo print_ref_status($item['ID'], 3);
+                    echo "</td>";
+                }
+
+                if(!$hide_r4){
+                    echo "<td $bgcolor rowspan='{$item['Height']}'>";
+                    echo print_ref_status($item['ID'], 4);
+                    echo "</td>";
+                }
                 
                 echo "<td $bgcolor rowspan='{$item['Height']}'>{$item['TotalLoad']}</td>";
                 
@@ -136,18 +146,21 @@ function generate_rack_row($rack_idx, $slot_idx){
             elseif($item['Type'] == 2){
                 // type==2 -> ups
                 $sum= calc_ups_load($item['ID']);
+                $span_a = $n_col - 5;
                 
-                echo "<td $bgcolor rowspan='{$item['Height']}' colspan='2'>";
+                echo "<td $bgcolor rowspan='{$item['Height']}' colspan='$span_a'>";
                 echo $item['Capacity'];
                 echo "</td>";
-                
-                echo "<td $bgcolor rowspan='{$item['Height']}' colspan='2'>";
-                echo $sum;
-                echo "</td>";
-                
-                echo "<td $bgcolor rowspan='{$item['Height']}' colspan='1'>";
-                echo round($sum/$item['Capacity']*100,1);
-                echo "%</td>";
+
+                if(isset($_GET['prefer_percent'])){
+                    echo "<td $bgcolor rowspan='{$item['Height']}' title='$sum'>";
+                    echo round($sum/$item['Capacity']*100,1);
+                    echo "%</td>";
+                }
+                else{
+                    echo "<td $bgcolor rowspan='{$item['Height']}' title='".round($sum/$item['Capacity']*100,1)."%'>";
+                    echo "$sum</td>";
+                }
                 
                 echo "<td $bgcolor rowspan='{$item['Height']}'>";
                 echo round(apply_formula($item['ID'], $sum));
@@ -170,25 +183,50 @@ function generate_rack_row($rack_idx, $slot_idx){
 }
 
 function generate_rack_table($idx){
+    // determine which references we need to print in this rack
+    $h = array(0,0,0,0);
+    $n_col = 9;
+
+    if(!isset($_GET['show_hidden_cols'])){
+        for($i = 0; $i < 4; $i++){
+            $i_ = $i+1;
+            $q = sql_query("SELECT COUNT(*) FROM `entities` WHERE `Rack` = '$idx' AND `Ref$i_` != 0");
+            $count = mysqli_fetch_row($q)[0];
+            mysqli_free_result($q);
+            if($count < 1){
+                $h[$i] = 1;
+                $n_col --;
+            }
+        }
+    }
+    
     echo "<div class='rack'>";
     echo "<table>";
     echo "<tr class='rack_title'>";
-    echo "<td colspan='9'>Rack $idx</td>";
+    echo "<td colspan='$n_col'>Rack $idx</td>";
     echo "</tr>";
     echo "<tr class='rack_head'>";
-    echo "<td>&nbsp;</td><td style='min-width:60px;'>Hardware</td><td>R1</td><td>R2</td><td>R3</td><td>R4</td><td>Load</td><td>Uptime</td>";
+    echo "<td>&nbsp;</td><td>Hardware</td>";
+
+    for($i = 0; $i < 4; $i++){
+        if(!$h[$i]){
+            echo "<td>R" . ($i+1) . "</td>";
+        }
+    }
+
+    echo "<td>Load</td><td>Uptime</td>";
     echo "</tr>";
     for($i = 42; $i >= 0; $i--){
-        generate_rack_row($idx, $i);
+        generate_rack_row($idx, $i, $h[0], $h[1], $h[2], $h[3]);
     }
     echo "</table>";
     echo "</div>";
 }
 
 if(is_user_authed()){
-	echo "<h2 class='head'>rackpower</h2><ul class='head'>";
-	show_content("head.inc.html");
-    echo "</ul><div id='main'>";
+	echo "<div id='header'><h2 class='head'>rackpower</h2><ul class='head'>";
+	show_content("head.inc.php");
+    echo "</ul></div><div id='main'>";
     echo "<div class='racks_container'>";
     if($racks = sql_query("SELECT `RackId` FROM `racks` ORDER BY `RackId` DESC")){
         while($row = mysqli_fetch_array($racks)){
@@ -199,7 +237,7 @@ if(is_user_authed()){
     echo "</div></div>";
 }
 else{
-	echo "<h2 class='head'>rackpower</h2><ul class='head'>";
+	echo "<div id='header'><h2 class='head'>rackpower</h2><ul class='head'>";
     echo "<li><a href='./?p=login' onclick='return windowpop(this.href)'>Log In</a></li>";
-    echo "</ul><div id='main'></div>";
+    echo "</ul></div><div id='main'></div>";
 }

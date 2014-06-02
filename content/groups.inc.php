@@ -5,13 +5,22 @@ set_title("groups");
 if(!is_user_authed()) exit("not logged in");
 
 if(isset($_GET['post'])){
-	if(isset($_GET['id'] )){
+	if(isset($_GET['id']) && $_POST['action'] == 'Modify'){
 		//modify
 		$id = intval($_GET['id']);
 		$name = sql_esc($_POST['name']);
 		$color = sql_esc($_POST['color']);
 		sql_query("UPDATE `groups` SET `Name`='$name', `Color`='$color' WHERE `ID`='$id'");
 		if(mysqli_errno(sql()))
+			echo mysqli_error(sql());
+		else
+			echo "<script type='text/javascript'>window.opener.location.reload();window.location='./?p=groups';</script>";
+	}
+	elseif(isset($_GET['id']) && $_POST['action'] == 'Delete'){
+        $id = intval($_GET['id']);
+        sql_query("UPDATE `entities` SET `Group`='0' WHERE `Group`='$id'");
+        sql_query("DELETE FROM `groups` WHERE `ID`='$id'");
+        if(mysqli_errno(sql()))
 			echo mysqli_error(sql());
 		else
 			echo "<script type='text/javascript'>window.opener.location.reload();window.location='./?p=groups';</script>";
@@ -38,7 +47,7 @@ else{
 			echo "<tr><form action='./?p=groups&post&id={$r['ID']}' method='post'>";
 			echo "<td><input name='name' value='{$r['Name']}'/></td>";
 			echo "<td><input name='color' type='color' value='{$r['Color']}'/></td>";
-			echo "<td><input type='submit' value='Modify'/></td>";
+			echo "<td><input type='submit' name='action' value='Modify'/> <input type='submit' name='action' value='Delete'/></td>";
 			echo "</form></tr>";
 		}
 		echo "</table>";

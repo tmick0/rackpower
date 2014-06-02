@@ -25,7 +25,7 @@ ob_end_clean();
     <title>rackpower / <?php echo get_title();?></title>
     <style type="text/css">
         body{
-            margin:4px 4px 4px 4px;
+            margin:1px;
             padding:0px;
             font-size:14px;
         }
@@ -41,8 +41,9 @@ ob_end_clean();
         	border-right:1px solid;
         	height:25px;
         }
-        #main{
-        	border-top:1px solid;
+        #header{
+        	border-bottom:1px solid;
+        	margin-bottom:6px;
         }
         ul.head{
         	margin:0px;
@@ -63,16 +64,20 @@ ob_end_clean();
         }
         div.racks_container{
             text-align:center;
+            margin:auto;
         }
         div.rack{
-            font-size:11.5px;
+            font-size:10.5px;
+            line-height:12px;
             display:inline-block;
             vertical-align:top;
             border:1px solid;
-            margin:2px;
+            margin:1px;
+            page-break-inside:avoid;
         }
         div.rack>table{
-            
+            page-break-inside:avoid;
+            border-collapse:collapse;
         }
         tr.rack_title td{
             text-align:center;
@@ -92,12 +97,14 @@ ob_end_clean();
         tr.rack_row:last-child td{
             border-bottom:none;
         }
+        tr>td:last-child{
+            border-right:none;
+        }
+        td[title], span[title], s[title]{
+            cursor:help;
+        }
         div.rack table{
             border-collapse:collapse;
-        }
-        #main{
-        	width:100%;
-        	overflow:auto;
         }
     </style>
     <script type="text/javascript">
@@ -110,6 +117,23 @@ ob_end_clean();
             var ref = window.open(url, "Window2", "status=no,height=" + height + ",width=" + width + ",resizable=yes,left=" + leftPosition + ",top=" + topPosition + ",screenX=" + leftPosition + ",screenY=" + topPosition + ",toolbar=no,menubar=no,scrollbars=no,location=no,directories=no");
             return false;
         }
+
+        function addCssClass ( selector, styles ){
+        // method borrowed from http://taggedzi.com/articles/display/adding-css-to-a-page-using-javascript-without-jquery
+        try {
+            style = document.getElementById('custom_css_element');
+            temp = style.innerHTML;
+            style.innerHTML = temp + selector + "{ " + styles + "}\n";
+        }
+        catch (err)
+        {
+            style = document.createElement("style");
+            style.id = 'custom_css_element'
+            style.setAttribute('type', 'text/css');
+            style.innerHTML = selector + "{ " + styles + " }\n";
+            document.head.insertBefore(style,document.head.childNodes[0]);   
+        }
+    }
     </script>
 </head>
 <body>
