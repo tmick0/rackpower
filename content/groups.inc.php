@@ -47,7 +47,8 @@ else{
 			echo "<tr><form action='./?p=groups&post&id={$r['ID']}' method='post'>";
 			echo "<td><input name='name' value='{$r['Name']}'/></td>";
 			echo "<td><input name='color' type='color' value='{$r['Color']}'/></td>";
-			echo "<td><input type='submit' name='action' value='Modify'/> <input type='submit' name='action' value='Delete'/></td>";
+			echo "<td><input type='submit' name='action' value='Modify'/>";
+			echo "<input type='submit' name='action' value='Delete' onclick=\"return confirm('Are you sure you want to delete this?')\"/></td>";
 			echo "</form></tr>";
 		}
 		echo "</table>";
