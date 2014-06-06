@@ -1,7 +1,6 @@
 <?php
 
 set_title("racks");
-
 if(!is_user_authed()) exit("not logged in");
 
 if(isset($_GET['post'])){
@@ -17,17 +16,20 @@ if(isset($_GET['post'])){
 }
 else{
 	$q = sql_query("SELECT COUNT(*) FROM `racks` ORDER BY `RackId` ASC");
-	$n = mysqli_fetch_row($q)[0];
+	$n = mysqli_fetch_row($q);
+        $n = $n[0];
 	mysqli_free_result($q);
 	
 	$q = sql_query("SELECT `RackId` FROM `racks` ORDER BY `RackId` DESC LIMIT 0,1");
-	$m = mysqli_fetch_row($q)[0];
+	$m = mysqli_fetch_row($q);
+        $m = $m[0];
 	mysqli_free_result($q);
 	
 	echo "<i>There are currently $n racks.</i>.<table border='1'>";
 	for($i = 0; $i <= $m + 1; $i++){
 		$q = sql_query("SELECT COUNT(*) FROM `racks` WHERE `RackId` = '$i'");
-		$n = mysqli_fetch_row($q)[0];
+		$n = mysqli_fetch_row($q);
+		$n = $n[0];
 		mysqli_free_result($q);
 		echo "<tr>";
 		echo "<td>";

@@ -2,6 +2,7 @@
 
 set_title("main");
 
+// print rack position of entity from reference by id
 function print_ref_pos($id){
     if($id != 0 && $q = sql_query("SELECT `Rack`,`Position` FROM `entities` WHERE `ID` = '$id'")){
         $r = mysqli_fetch_row($q);
@@ -14,6 +15,7 @@ function print_ref_pos($id){
     }    
 }
 
+// count bits set in an integer (used in RefFlags)
 function bits_set($n){
     $s = 0;
     while($n > 0){
@@ -23,23 +25,28 @@ function bits_set($n){
     return $s;
 }
 
+// calculate total load of a UPS
 function calc_ups_load($id){
+    // select all references to the UPS
     $q = sql_query("SELECT * FROM `entities` WHERE `Ref1` = '$id' OR `Ref2` = '$id' OR `Ref3` = '$id' OR `Ref4` = '$id'");
     $sum = 0;
     while($r = mysqli_fetch_array($q)){
+        // count the machine's active references to divide up its total load
         $active_refs = bits_set($r['RefFlags']);
         if($active_refs != 0){
             $load_per_ref = $r['TotalLoad'] / $active_refs;
-            if($r['Ref1'] == $id) $sum += $load_per_ref;
-            if($r['Ref2'] == $id) $sum += $load_per_ref;
-            if($r['Ref3'] == $id) $sum += $load_per_ref;
-            if($r['Ref4'] == $id) $sum += $load_per_ref;
+            // for each possible reference, check if it is a reference to this machine and that it is active
+            if($r['Ref1'] == $id && ($r['RefFlags'] & 0x01) ) $sum += $load_per_ref;
+            if($r['Ref2'] == $id && ($r['RefFlags'] & 0x02) ) $sum += $load_per_ref;
+            if($r['Ref3'] == $id && ($r['RefFlags'] & 0x04) ) $sum += $load_per_ref;
+            if($r['Ref4'] == $id && ($r['RefFlags'] & 0x08) ) $sum += $load_per_ref;
         }
     }
     mysqli_free_result($q);
     return $sum;
 }
 
+// check if the given refernce n is active for entity id and print it out appropriately
 function print_ref_status($id, $n){
     $q = sql_query("SELECT `Ref$n`, `RefFlags`,`TotalLoad` FROM `entities` WHERE `ID`='$id'");
     $r = mysqli_fetch_array($q);
@@ -63,6 +70,7 @@ function print_ref_status($id, $n){
     mysqli_free_result($q);
 }
 
+// print a rack row(one entity)
 function generate_rack_row($rack_idx, $slot_idx, $hide_r1, $hide_r2, $hide_r3, $hide_r4){
     $rack_idx = sql_esc($rack_idx);
     $slot_idx = sql_esc($slot_idx);
@@ -187,6 +195,7 @@ function generate_rack_row($rack_idx, $slot_idx, $hide_r1, $hide_r2, $hide_r3, $
     }
 }
 
+// print one rack
 function generate_rack_table($idx){
     // determine which references we need to print in this rack
     $h = array(0,0,0,0);
@@ -196,15 +205,19 @@ function generate_rack_table($idx){
         for($i = 0; $i < 4; $i++){
             $i_ = $i+1;
             $q = sql_query("SELECT COUNT(*) FROM `entities` WHERE `Rack` = '$idx' AND `Ref$i_` != 0");
-            $count = mysqli_fetch_row($q)[0];
+          
+            $count = mysqli_fetch_row($q);
+            $count = $count[0];
+         
             mysqli_free_result($q);
             if($count < 1){
                 $h[$i] = 1;
                 $n_col --;
             }
+           
         }
     }
-    
+
     echo "<div class='rack'>";
     echo "<table>";
     echo "<tr class='rack_title'>";
@@ -228,6 +241,7 @@ function generate_rack_table($idx){
     echo "</div>";
 }
 
+// main script begins here
 if(is_user_authed()){
 	echo "<div id='header'><h2 class='head'>rackpower</h2><ul class='head'>";
 	show_content("head.inc.php");
@@ -242,7 +256,8 @@ if(is_user_authed()){
     echo "</div></div>";
 }
 else{
-	echo "<div id='header'><h2 class='head'>rackpower</h2><ul class='head'>";
+    echo "<div id='header'><h2 class='head'>rackpower</h2><ul class='head'>";
     echo "<li><a href='./?p=login' onclick='return windowpop(this.href)'>Log In</a></li>";
     echo "</ul></div><div id='main'></div>";
 }
+?>
