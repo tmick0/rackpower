@@ -15,7 +15,7 @@ Setup
 - Set up the database by importing the provided structure file
 - Copy the source code to somewhere your httpd can serve it
 - Modify config.inc.php to specify your mysql config and desired access password
-- Nagivate your browser to the url wehere you installed Rackpower, and log in
+- Nagivate your browser to the url where you installed Rackpower, and log in
 - Use the 'Manage Racks' option to add the desired number of racks
 - Use the 'Manage Groups' option to add desired groups
 - Use the 'New Entity' option to add entities to the racks. Add UPSs before servers.
@@ -32,5 +32,5 @@ Entities fields
   - *Power Supply 1-4*: Select which UPSs, if any, provides power to the machine. Select the checkbox to enable the supply. If a supply is not enabled, it will be displayed with -strikethrough- and not used to calculate loads or uptimes.
 - *Provider Parameters*: This section is required when configuring a device which provides power.
   - *Capacity*: The maximum capacity of the UPS, in watts
-  - *Runtime*: A formula to calcualte the runtime of the UPS. Since most runtimes have exponential runtime curves, we use `R = A * e^(B * W)`, where R is runtime in minutes and W us the load in watts. The constants A and B will vary with each UPS configuration and are entered here. Use an exponential regression calculator in combination with data from the UPS manual to fill in these fields.
+  - *Runtime*: A formula to calcualte the runtime of the UPS. Since most runtimes have exponential runtime curves, we use `R = A * e^(B * W)`, where R is runtime in minutes and W is the load in watts. The constants A and B will vary with each UPS configuration and are entered here. Use an exponential regression calculator in combination with data from the UPS manual to fill in these fields.
 - *Comments*: Any comments about the device can go here. The comments are displayed as a tooltip when hovering over the entity in the rack.
