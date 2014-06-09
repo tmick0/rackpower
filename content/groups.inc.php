@@ -4,32 +4,42 @@ set_title("groups");
 
 if(!is_user_authed()) exit("not logged in");
 
+// check if there is postdata
 if(isset($_GET['post'])){
 	if(isset($_GET['id']) && $_POST['action'] == 'Modify'){
-		//modify
+		// modify
+		
 		$id = intval($_GET['id']);
 		$name = sql_esc($_POST['name']);
 		$color = sql_esc($_POST['color']);
+		
 		sql_query("UPDATE `groups` SET `Name`='$name', `Color`='$color' WHERE `ID`='$id'");
+		
 		if(mysqli_errno(sql()))
 			echo mysqli_error(sql());
 		else
 			echo "<script type='text/javascript'>window.opener.location.reload();window.location='./?p=groups';</script>";
 	}
 	elseif(isset($_GET['id']) && $_POST['action'] == 'Delete'){
+	    // delete
         $id = intval($_GET['id']);
+
+        // unset group from entities before deleting
         sql_query("UPDATE `entities` SET `Group`='0' WHERE `Group`='$id'");
         sql_query("DELETE FROM `groups` WHERE `ID`='$id'");
+        
         if(mysqli_errno(sql()))
 			echo mysqli_error(sql());
 		else
 			echo "<script type='text/javascript'>window.opener.location.reload();window.location='./?p=groups';</script>";
 	}
 	else{
-		//add
+		// add
 		$name = sql_esc($_POST['name']);
 		$color = sql_esc($_POST['color']);
+		
 		sql_query("INSERT INTO `groups` SET `Name`='$name', `Color`='$color'");
+		
 		if(mysqli_errno(sql()))
 			echo mysqli_error(sql());
 		else
@@ -39,7 +49,9 @@ if(isset($_GET['post'])){
 else{
 
 	$q = sql_query("SELECT * FROM `groups`");
+	
 	if(mysqli_num_rows($q)){
+	    // print table of groups
 		echo "<i>Current groups:</i>";
 		echo "<table border='1'>";
 		echo "<tr><td>Name</td><td>Color</td><td>&nbsp;</td></tr>";

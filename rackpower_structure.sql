@@ -5,24 +5,29 @@ USE `rackpower`;
 
 DROP TABLE IF EXISTS `entities`;
 CREATE TABLE IF NOT EXISTS `entities` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `Type` int(11) NOT NULL,
-  `Group` int(11) DEFAULT NULL,
-  `Rack` int(11) unsigned NOT NULL,
-  `Position` int(11) unsigned NOT NULL,
-  `Height` int(11) unsigned NOT NULL DEFAULT '1',
-  `Hardware` varchar(32) NOT NULL,
-  `Name` varchar(32) DEFAULT NULL,
-  `Comment` varchar(192) DEFAULT NULL,
-  `Ref1` int(11) DEFAULT NULL,
-  `Ref2` int(11) DEFAULT NULL,
-  `Ref3` int(11) DEFAULT NULL,
-  `Ref4` int(11) DEFAULT NULL,
-  `RefFlags` int(11) DEFAULT '0',
-  `TotalLoad` int(11) DEFAULT NULL,
-  `Capacity` int(11) DEFAULT NULL,
-  `FormulaA` float DEFAULT NULL,
-  `FormulaB` float DEFAULT NULL,
+  `ID` int(11) NOT NULL AUTO_INCREMENT,             -- internal ID field
+  `Type` int(11) NOT NULL,                          -- specifies consumer/provider/other
+  `Group` int(11) DEFAULT NULL,                     -- ID of assigned group
+  `Rack` int(11) unsigned NOT NULL,                 -- ID of rack the entity is in
+  `Position` int(11) unsigned NOT NULL,             -- position of entity in the rack
+  `Height` int(11) unsigned NOT NULL DEFAULT '1',   -- units occupied by entity
+  `Hardware` varchar(32) NOT NULL,                  -- displayed name of entity
+  `Name` varchar(32) DEFAULT NULL,                  -- not used
+  `Comment` varchar(192) DEFAULT NULL,              -- notes on entity
+
+                                                    -- consumer fields:
+  `Ref1` int(11) DEFAULT NULL,                      -- ID of power source 1
+  `Ref2` int(11) DEFAULT NULL,                      -- ID of power source 2
+  `Ref3` int(11) DEFAULT NULL,                      -- ID of power source 3
+  `Ref4` int(11) DEFAULT NULL,                      -- ID of power source 4
+  `RefFlags` int(11) DEFAULT '0',                   -- bitmask indicates which power sources are enabled
+  `TotalLoad` int(11) DEFAULT NULL,                 -- total load of consumer in watts
+
+                                                    -- provider fields:
+  `Capacity` int(11) DEFAULT NULL,                  -- capacity of provider in watts
+  `FormulaA` float DEFAULT NULL,                    -- constant A in the runtime formula R = A * e^(B*W)
+  `FormulaB` float DEFAULT NULL,                    -- constant B in the runtime formula
+  
   PRIMARY KEY (`ID`),
   KEY `Rack_idx` (`Rack`),
   KEY `Type_idx` (`Type`)

@@ -1,11 +1,14 @@
 <?php
 
 function is_user_authed(){
-    // TODO: make this better for the love of god
-    if(!isset($_SESSION['authed']) || $_SESSION['authed'] != true)
+    if(get_conf('use_auth') && (!isset($_SESSION['authed']) || $_SESSION['authed'] != true)){
+        // using internal auth, and not logged in
         return false;
-    else
+    }
+    else{
+        // if not using internal auth, assume user is already authed
         return true;
+    }
 }
 
 function auth_user(){

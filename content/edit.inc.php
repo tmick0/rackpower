@@ -2,6 +2,7 @@
 
 if(!is_user_authed()) exit("not logged in");
 
+// when editing an entity, get the value of a text input field
 function get_val($id, $field){
     if($id){
         $q = sql_query("SELECT `$field` FROM `entities` WHERE `ID` = '$id'");
@@ -14,6 +15,7 @@ function get_val($id, $field){
     }
 }
 
+// when editing an entity, check whether the given value is selected for a particular dropdown input field
 function get_selected($id, $field, $val){
     if(get_val($id, $field) == $val)
         return "selected='selected'";
@@ -21,6 +23,7 @@ function get_selected($id, $field, $val){
         return "";
 }
 
+// check whether the given bit is set in the RefFlags field of an entity
 function get_flag_checked($id, $flag){
     if((get_val($id, "RefFlags") & $flag) != 0)
         return "checked='checked'";
@@ -28,6 +31,7 @@ function get_flag_checked($id, $flag){
         return "";
 }
 
+// populate a dropdown with references to all UPSs
 function print_refs($id,$col){
     $q = sql_query("SELECT `ID`,`Rack`,`Position`,`Hardware` FROM `entities` WHERE `Type` = '2'");
     
@@ -44,6 +48,7 @@ function print_refs($id,$col){
     mysqli_free_result($q);
 }
 
+// when submitting the form, calculate the value of the RefFlags field based on checkbox values
 function calc_flags(){
     $sum = 0;
     if(isset($_POST['ref1_f']) && $_POST['ref1_f'] != 0) $sum += 1;
@@ -53,9 +58,15 @@ function calc_flags(){
     return $sum;
 }
 
+// mode = 0 means adding a new entity
+// otherwise, mode is the id of the field we are editing
 $mode = 0;
+
+// set to 0 if an error is detected to invoke failure condition
 $okay = 1;
 
+
+// detect whether we are editing an entity or adding a new one
 if(isset($_GET['id'])){
     $mode = intval($_GET['id']);;
     set_title("edit item");
@@ -64,7 +75,9 @@ else{
     set_title("add item");
 }
 
+// submitting changes
 if(isset($_GET['post']) && $_POST['action'] == "Save"){
+    // we populate this array with key=>value pairs, where keys correspond to table fields
     $save = array();
     
     $save['Type'] = $_POST['type'];
@@ -76,7 +89,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
     $save['Comment'] = strip_tags($_POST['comment']);
     
     if($_POST['type'] == 1){
-        //consumer
+        //consumer - set provider fields to 0
         $save['Ref1'] = intval($_POST['ref1']);
         $save['Ref2'] = intval($_POST['ref2']);
         $save['Ref3'] = intval($_POST['ref3']);
@@ -88,7 +101,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['FormulaB'] = 0;
     }
     elseif($_POST['type'] == 2){
-        //provider
+        //provider - set consumer fields to 0
         $save['Ref1'] = 0;
         $save['Ref2'] = 0;
         $save['Ref3'] = 0;
@@ -100,7 +113,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['FormulaB'] = $_POST['formulab'];
     }
     else{
-        //other
+        //other - set consumer/provider fields to 0
         $save['Ref1'] = 0;
         $save['Ref2'] = 0;
         $save['Ref3'] = 0;
@@ -110,6 +123,12 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['Capacity'] = 0;
         $save['FormulaA'] = 0;
         $save['FormulaB'] = 0;
+    }
+
+    // check that the height and position are valid
+    if($save['Position'] + $save['Height'] > 42){
+        $okay = 0;
+        echo "Error: The entity goes above the height of the rack<br/>";
     }
 
     // check if space is occupied
@@ -125,9 +144,11 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         }
     }
 
+    // if validation succeeded, perform the query
     if($okay){
-        // build query
+        // build query into this string
         $qs = "";
+        
         if($mode){
             //update
             $qs = "UPDATE `entities` SET ";
@@ -147,8 +168,11 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
             }
             $qs = substr($qs, 0, -2);
         }
+
+        // perform query
         $q = sql_query($qs);
 
+        // detect errors
         if(mysqli_errno(sql())){
             // query failure
             echo mysqli_error(sql());
@@ -168,6 +192,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         echo "<a href='javascript:window.history.go(-1)'>Go back &rarr;</a>";
     }
 }
+// perform delete action
 elseif(isset($_GET['post']) && $_POST['action'] == "Delete"){
     sql_query("DELETE FROM `entities` WHERE `ID` = '$mode'");
      if(mysqli_errno(sql())){
@@ -183,7 +208,7 @@ elseif(isset($_GET['post']) && $_POST['action'] == "Delete"){
     }
 }
 else{
-
+    // if no postdata, show form
 ?>
 
 <form action="?p=edit&post<?php if(isset($_GET['id'])) echo "&id={$_GET['id']}";?>" method="post">
@@ -229,18 +254,18 @@ else{
                     while($r = mysqli_fetch_row($q)){
                         echo "<option value='{$r[0]}' ";
                         echo get_selected($mode, 'Rack', $r[0]);
-                        echo ">Rack {$r[0]}</option>";
+                        echo ">{$r[0]}</option>";
                     }
                     mysqli_free_result($q);
                 ?>
             </select>
-            
+            .
             <select name="position">
                 <?php
                     for($i = 42; $i >= 0; $i--){
                         echo "<option value='$i' ";
                         echo get_selected($mode, 'Position', $i);
-                        echo ">Unit $i</option>";
+                        echo ">$i</option>";
                     }
                 ?>
             </select>

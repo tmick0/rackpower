@@ -1,5 +1,7 @@
 <?php
     function build_query($skip,$add){
+        // build query string with specified options added/removed
+        
         $r = array();
 
         $opts = array('prefer_percent', 'show_hidden_cols');
@@ -30,6 +32,7 @@
 <li><a href='./?p=groups' onclick='return windowpop(this.href)'>Manage Groups</a></li>
 <li>
 <?php
+    // ?prefer_percent flag toggles between displaying loads as %'s or total W's
     if(isset($_GET['prefer_percent'])){
         $s = build_query('prefer_percent','');
         echo "<a href='$s'>Display Total UPS Load</a>";
@@ -42,6 +45,7 @@
 </li>
 <li>
 <?php
+    // ?show_hidden_cols flag toggles display of reference columns without any data
     if(isset($_GET['show_hidden_cols'])){
         $s = build_query('show_hidden_cols','');
         echo "<a href='$s'>Hide Empty Columns</a>";
@@ -53,4 +57,8 @@
 ?>
 </li>
 <li><a href="javascript:addCssClass('#header','display:none')">Hide header</a></li>
-<li><a href='./?p=login&logout' onclick='return windowpop(this.href)'>Log Out</a></li>
+<?php
+    // show logout link if using internal auth
+    if(get_conf('use_auth'))
+        echo "<li><a href='./?p=login&logout' onclick='return windowpop(this.href)'>Log Out</a></li>";
+?>

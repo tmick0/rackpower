@@ -1,5 +1,6 @@
 <?php
 
+// gets the formula for ups with specified $id from the db, and calculates the runtime under specified $load
 function apply_formula($id, $load){
     $q = sql_query("SELECT `FormulaA`,`FormulaB` FROM `entities` WHERE `ID`='$id'");
     $r = mysqli_fetch_row($q);

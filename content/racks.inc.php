@@ -5,16 +5,19 @@ if(!is_user_authed()) exit("not logged in");
 
 if(isset($_GET['post'])){
 	if(isset($_GET['del'])){
+	    // delete specified rack
 		$i = intval($_GET['del']);
 		sql_query("DELETE FROM `racks` WHERE `RackId`='$i'");
 	}
 	elseif(isset($_GET['add'])){
+	    // add new rack
 		$i = intval($_GET['add']);
 		sql_query("INSERT INTO `racks` SET `RackId`='$i'");
 	}
 	echo "<script type='text/javascript'>window.opener.location.reload();window.location='./?p=racks';</script>";
 }
 else{
+    // display table of racks
 	$q = sql_query("SELECT COUNT(*) FROM `racks` ORDER BY `RackId` ASC");
 	$n = mysqli_fetch_row($q);
         $n = $n[0];
