@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `entities` (
   `Capacity` int(11) DEFAULT NULL,
   `FormulaA` float DEFAULT NULL,
   `FormulaB` float DEFAULT NULL,
+  `GlpiId` int(11) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `Rack_idx` (`Rack`),
   KEY `Type_idx` (`Type`)
