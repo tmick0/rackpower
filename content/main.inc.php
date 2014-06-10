@@ -6,23 +6,13 @@ set_title("main");
 function print_ref_pos($id){
     if($id != 0 && $q = sql_query("SELECT `Rack`,`Position` FROM `entities` WHERE `ID` = '$id'")){
         $r = mysqli_fetch_row($q);
-        if($r[1] < 10) $r[1] = "0{$r[1]}";
+        if($r[1] < 10) $r[1] = "0{$r[1]}"; // pad with leading zero if necessary
         echo "{$r[0]}.{$r[1]}";
         mysqli_free_result($q);
     }
     else{
         echo "-";
     }    
-}
-
-// count bits set in an integer (used in RefFlags)
-function bits_set($n){
-    $s = 0;
-    while($n > 0){
-        $s += $n & 0x01;
-        $n = $n >> 1;
-    }
-    return $s;
 }
 
 // calculate total load of a UPS
@@ -102,7 +92,7 @@ function generate_rack_row($rack_idx, $slot_idx, $hide_r1, $hide_r2, $hide_r3, $
             
             echo "<tr class='rack_row'>";
             echo "<td>$slot_idx</td>";
-            echo "<td $bgcolor rowspan='{$item['Height']}' style='white-space:nowrap;' $title><a href='?p=edit&id={$item['ID']}' onclick='return windowpop(this.href)'>{$item['Hardware']}</a></td>";
+            echo "<td $bgcolor rowspan='{$item['Height']}' style='white-space:nowrap;' $title><a href='?p=view&id={$item['ID']}' onclick='return windowpop(this.href)'>{$item['Hardware']}</a></td>";
             
             if($item['Type'] == 1){
                 // type==1 -> server

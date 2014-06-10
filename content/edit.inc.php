@@ -94,6 +94,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['Ref2'] = intval($_POST['ref2']);
         $save['Ref3'] = intval($_POST['ref3']);
         $save['Ref4'] = intval($_POST['ref4']);
+        $save['GlpiId'] = intval($_POST['glpi']);
         $save['RefFlags'] = calc_flags();
         $save['TotalLoad'] = intval($_POST['load']);
         $save['Capacity'] = 0;
@@ -106,6 +107,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['Ref2'] = 0;
         $save['Ref3'] = 0;
         $save['Ref4'] = 0;
+        $save['GlpiID'] = 0;
         $save['RefFlags'] = 0;
         $save['TotalLoad'] = 0;
         $save['Capacity'] = $_POST['capacity'];
@@ -118,6 +120,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
         $save['Ref2'] = 0;
         $save['Ref3'] = 0;
         $save['Ref4'] = 0;
+        $save['GlpiId'] = 0;
         $save['RefFlags'] = 0;
         $save['TotalLoad'] = 0;
         $save['Capacity'] = 0;
@@ -126,7 +129,7 @@ if(isset($_GET['post']) && $_POST['action'] == "Save"){
     }
 
     // check that the height and position are valid
-    if($save['Position'] + $save['Height'] > 42){
+    if($save['Position'] + $save['Height'] - 1 > 42){
         $okay = 0;
         echo "Error: The entity goes above the height of the rack<br/>";
     }
@@ -209,10 +212,11 @@ elseif(isset($_GET['post']) && $_POST['action'] == "Delete"){
 }
 else{
     // if no postdata, show form
+    if($mode) echo "<h2>Edit Entity</h2>";
+    else echo "<h2>Add Entity</h2>";
 ?>
-
 <form action="?p=edit&post<?php if(isset($_GET['id'])) echo "&id={$_GET['id']}";?>" method="post">
-    <table class='edit_form' border="1">
+    <table class='edit_form'>
     
     <tr>
         <td>Hardware</td>
@@ -245,6 +249,8 @@ else{
                 ?>
             </select>
         </td>
+    </tr>
+    
     <tr>
         <td>Position</td>
         <td>
@@ -269,7 +275,7 @@ else{
                     }
                 ?>
             </select>
-        </tr>
+        </td>
     </tr>
     
     <tr>
@@ -285,14 +291,13 @@ else{
                 ?>
             </select>
         </td>
-        </tr>
     </tr>
 
     <tr>
         <td>Consumer Parameters</td>
         <td>
-            <i>Ignore this section if configuring a provider (or other)</i>
-            <table border="0" width="100%">
+            <i>Ignore this section if not configuring a consumer</i>
+            <table class='provtable'>
                 <tr>
                     <td>Total Consumption</td>
                     <td><input name="load" value="<?php echo get_val($mode, 'TotalLoad');?>"/></td>
@@ -336,6 +341,11 @@ else{
                         <input type='checkbox' name="ref4_f" value="1" <?php echo get_flag_checked($mode, 8); ?>/>
                     </td>
                 </tr>
+
+                <tr>
+                    <td>GLPI ID</td>
+                    <td><input name="glpi" value="<?php echo get_val($mode, 'GlpiId');?>"/></td>
+                </tr>
             </table>
         </td>
     </tr>
@@ -343,19 +353,25 @@ else{
     <tr>
         <td>Provider Parameters</td>
         <td>
-            <i>Ignore this section if configuring a consumer (or other)</i>
-            <table border="0" width="100%">
+            <i>Ignore this section if not configuring a provider</i>
+            <table class='provtable'>
                 <tr>
-                    <td>Capacity</td>
+                    <td style='width:78px!important;'>Capacity</td>
+                    <td style='width:40px!important;border-left:none!important;' class='mid'></td>
                     <td>
                          <input name="capacity" value="<?php echo get_val($mode, 'Capacity'); ?>"/>
                     </td>
                 </tr>
+                
                 <tr>
-                    <td>Runtime =</td>
-                    <td>
-                        <input name="formulaa" value="<?php echo get_val($mode, 'FormulaA'); ?>"/> * e^(<input name="formulab" value="<?php echo get_val($mode, 'FormulaB'); ?>"/> * W)
-                    </td>
+                    <td style='width:78px!important;' rowspan='2'>Runtime<br/><i>A * e^(B*W)</i></td>
+                    <td style='width:20px!important;border-left:none!important;' class='mid'>A =</td>
+                    <td><input name="formulaa" value="<?php echo get_val($mode, 'FormulaA'); ?>"/></td>
+                </tr>
+                
+                <tr>
+                    <td style='width:20px!important;border-top:none!important;border-left:none!important;'>B =</td>
+                    <td><input name="formulab" value="<?php echo get_val($mode, 'FormulaB'); ?>"/></td>
                 </tr>
             </table>
         </td>
@@ -364,7 +380,7 @@ else{
     <tr>
         <td>Comments</td>
         <td>
-            <textarea name='comment' rows="5" cols="52"><?php echo get_val($mode, 'Comment'); ?></textarea>
+            <textarea name='comment' rows="5" cols="44"><?php echo get_val($mode, 'Comment'); ?></textarea>
         </td>
     </tr>
 
