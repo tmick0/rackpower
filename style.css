@@ -166,6 +166,20 @@ div.rack table{
     text-align:center;
 }
 
-.glpitable>tbody>tr>td:first-child{
-    
+.loadtable{
+    width:100%;
+}
+
+.loadtable tr td:first-child{
+    width:150px;
+}
+
+.loadtable td{
+    font-style:normal!important;
+    text-align:center;
+}
+
+
+.loadtable tr:first-child td{
+    font-style:italic !important;
 }
