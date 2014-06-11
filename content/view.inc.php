@@ -182,12 +182,15 @@ else{
                         $min_id = 0;
                         $min_runtime = 0;
                         while($r = mysqli_fetch_array($q)){
-                            // skip if not active
-                            if($ref1 == $r['ID'] && ($flags & 0x01) == 0) continue;
-                            if($ref2 == $r['ID'] && ($flags & 0x02) == 0) continue;
-                            if($ref3 == $r['ID'] && ($flags & 0x04) == 0) continue;
-                            if($ref4 == $r['ID'] && ($flags & 0x08) == 0) continue;
-                            
+                            // skip if no active references to this ups
+                            $active_count = 0;
+                            if($ref1 == $r['ID'] && ($flags & 0x01) != 0) $active_count++;
+                            if($ref2 == $r['ID'] && ($flags & 0x02) != 0) $active_count++;
+                            if($ref3 == $r['ID'] && ($flags & 0x04) != 0) $active_count++;
+                            if($ref4 == $r['ID'] && ($flags & 0x08) != 0) $active_count++;
+    
+                            if($active_count == 0) continue;
+                        
                             $sum = calc_ups_load($r['ID']);
                             $this_rt = apply_formula($r['ID'], $sum);
                             // look for min runtime

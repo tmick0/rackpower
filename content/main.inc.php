@@ -108,18 +108,21 @@ function generate_rack_row($rack_idx, $slot_idx, $hide_r1, $hide_r2, $hide_r3, $
                 $min_id = 0;
                 $min_runtime = 0;
                 while($r = mysqli_fetch_array($q)){
-                    // skip if not active
-                    if($item['Ref1'] == $r['ID'] && ($item['RefFlags'] & 0x01) == 0) continue;
-                    if($item['Ref2'] == $r['ID'] && ($item['RefFlags'] & 0x02) == 0) continue;
-                    if($item['Ref3'] == $r['ID'] && ($item['RefFlags'] & 0x04) == 0) continue;
-                    if($item['Ref4'] == $r['ID'] && ($item['RefFlags'] & 0x08) == 0) continue;
-                    
-                    $sum = calc_ups_load($r['ID']);
-                    $this_rt = apply_formula($r['ID'], $sum);
-                    if($min_id == 0 || $this_rt < $min_runtime){
-                        $min_runtime = round($this_rt);
-                        $min_id = $r['ID'];
-                    }   
+                        // skip if no active references to this ups
+                        $active_count = 0;
+                        if($item['Ref1'] == $r['ID'] && ($item['RefFlags'] & 0x01) != 0) $active_count++;
+                        if($item['Ref2'] == $r['ID'] && ($item['RefFlags'] & 0x02) != 0) $active_count++;
+                        if($item['Ref3'] == $r['ID'] && ($item['RefFlags'] & 0x04) != 0) $active_count++;
+                        if($item['Ref4'] == $r['ID'] && ($item['RefFlags'] & 0x08) != 0) $active_count++;
+
+                        if($active_count == 0) continue;
+                        
+                        $sum = calc_ups_load($r['ID']);
+                        $this_rt = apply_formula($r['ID'], $sum);
+                        if($min_id == 0 || $this_rt < $min_runtime){
+                            $min_runtime = round($this_rt);
+                            $min_id = $r['ID'];
+                        }
                 }
                 mysqli_free_result($q);
                 echo "$min_runtime</td>";
